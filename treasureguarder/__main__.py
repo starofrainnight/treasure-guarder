@@ -4,13 +4,21 @@
 """Console script for treasure-guarder."""
 
 import click
+import shotatlogging
+from .treasureguarder import TreasureGuarder
+
 
 @click.command()
-def main(args=None):
-    """Console script for treasure-guarder."""
-    click.echo("Replace this message by putting your code into "
-               "treasureguarder.__main__.main")
-    click.echo("See click documentation at http://click.pocoo.org/")
+@click.argument("cfg_path", default="./treasure-guarder.yml")
+def main(**kwargs):
+    """Console script for treasure-guarder.
+
+    CFG_PATH: Configuration file path
+    """
+    shotatlogging.setup()
+
+    guarder = TreasureGuarder(kwargs)
+    guarder.exec_()
 
 
 if __name__ == "__main__":
