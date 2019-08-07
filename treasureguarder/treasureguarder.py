@@ -5,6 +5,7 @@
 import os
 import yaml
 import logging
+import click
 from attrdict import AttrDict
 from subprocess import run, PIPE
 from typing import Dict, Any
@@ -74,5 +75,10 @@ class TreasureGuarder(object):
     def exec_(self):
         os.makedirs(self.WORK_DIR, exist_ok=True)
 
-        for k, v in self._cfg.get("repos", dict()).items():
+        items = self._cfg.get("repos", dict()).items()
+        count = len(items)
+        i = 0
+        for k, v in items:
+            i += 1
+            click.echo("[%s/%s] Mirroring repository : %s ..." % (i, count, k))
             self.mirror_repo(k, v)
