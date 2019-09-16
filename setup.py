@@ -11,7 +11,7 @@ with io.open("README.rst", encoding="utf-8") as readme_file, io.open(
 ) as history_file:
     long_description = readme_file.read() + "\n\n" + history_file.read()
 
-install_requires = ["click>=6.0", "PyYAML", "shotatlogging"]
+install_requires = ["click>=6.0", "PyYAML", "attrdict", "shotatlogging"]
 
 setup_requires = [
     "pytest-runner",
