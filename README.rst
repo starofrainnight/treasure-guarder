@@ -41,8 +41,9 @@ Usage
 
 **NOTICE**:
 
-1. You must ensure you have rights to access to the source repository and the destination repository
-1. You must ensure there won't prompt password when pushing to destination repository
+1. Ensure latest git command exists in your shell environment
+1. Ensure you have rights to access to the source repository and the destination repository
+1. Ensure there won't prompt password when pushing to destination repository
 1. Normally, the cache directory `.tgwork` will created under current working directory
 
 
