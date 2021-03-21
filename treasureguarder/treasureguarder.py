@@ -12,8 +12,7 @@ from typing import Dict, Any
 
 
 def shell(*args, **kwargs):
-    """For simplify run shell commands by run()
-    """
+    """For simplify run shell commands by run()"""
     kwargs["shell"] = True
     return run(*args, **kwargs)
 
@@ -56,7 +55,10 @@ class TreasureGuarder(object):
             # Check if remote name exits
             p = shell("git remote", stdout=PIPE)
             remotes = p.stdout.decode("utf-8").splitlines()
-            if self.REMOTE_NAME not in remotes:
+            if self.REMOTE_NAME in remotes:
+                # If the url already exists, we override it
+                shell("git config remote.tgremote.url {url}".format(url=options["to"]))
+            else:
                 # Add the remote url to this repository if it's not exists
                 shell(
                     "git remote add {name} {url}".format(
