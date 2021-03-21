@@ -26,7 +26,7 @@ tests_requires = [
 
 setup(
     name="treasure-guarder",
-    version="0.0.1",
+    version="0.0.2",
     description="A python script for backup repositories to custom git server",
     long_description=long_description,
     author="Hong-She Liang",
