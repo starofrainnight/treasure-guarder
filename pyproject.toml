@@ -1,0 +1,3 @@
+[tool.black]
+# Just follow the python library coding style
+line-length = 79

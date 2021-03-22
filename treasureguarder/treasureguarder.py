@@ -57,7 +57,11 @@ class TreasureGuarder(object):
             remotes = p.stdout.decode("utf-8").splitlines()
             if self.REMOTE_NAME in remotes:
                 # If the url already exists, we override it
-                shell("git config remote.tgremote.url {url}".format(url=options["to"]))
+                shell(
+                    "git config remote.tgremote.url {url}".format(
+                        url=options["to"]
+                    )
+                )
             else:
                 # Add the remote url to this repository if it's not exists
                 shell(
