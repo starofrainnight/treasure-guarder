@@ -19,6 +19,7 @@ def shell(*args, **kwargs):
 
 class TreasureGuarder(object):
     REMOTE_NAME = "tgremote"
+    ORIGIN_NAME = "origin"
     WORK_DIR = ".tgwork"
 
     def __init__(self, kwargs):
@@ -58,8 +59,8 @@ class TreasureGuarder(object):
             if self.REMOTE_NAME in remotes:
                 # If the url already exists, we override it
                 shell(
-                    "git config remote.tgremote.url {url}".format(
-                        url=options["to"]
+                    "git config remote.{name}.url {url}".format(
+                        name=self.REMOTE_NAME, url=options["to"]
                     )
                 )
             else:
@@ -69,6 +70,12 @@ class TreasureGuarder(object):
                         name=self.REMOTE_NAME, url=options["to"]
                     )
                 )
+
+            shell(
+                "git config remote.{name}.url {url}".format(
+                    name=self.ORIGIN_NAME, url=options["from"]
+                )
+            )
 
             # Push all to backup repository
             shell("git push {name} --all".format(name=self.REMOTE_NAME))
