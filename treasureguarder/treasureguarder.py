@@ -98,12 +98,13 @@ class TreasureGuarder(object):
     def exec_(self):
         os.makedirs(self.WORK_DIR, exist_ok=True)
 
-        items = self._cfg.get("repos", dict()).items()
+        items = self._cfg.get("repos", list())
         count = len(items)
         i = 0
-        for k, v in items:
+        for item in items:
             i += 1
+            name = os.path.splitext(os.path.basename(item["src"]))[0]
             self._logger.info(
-                "[%s/%s] Mirroring repository : %s" % (i, count, k)
+                "[%s/%s] Mirroring repository : %s" % (i, count, name)
             )
-            self.mirror_repo(k, v)
+            self.mirror_repo(name, item)
