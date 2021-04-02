@@ -3,18 +3,13 @@
 """Main module."""
 
 import os
+import invoke
 import yaml
 import logging
 import click
 from attrdict import AttrDict
-from subprocess import run, PIPE
 from typing import Dict, Any
-
-
-def shell(*args, **kwargs):
-    """For simplify run shell commands by run()"""
-    kwargs["shell"] = True
-    return run(*args, **kwargs)
+from invoke import run
 
 
 class TreasureGuarder(object):
@@ -42,45 +37,44 @@ class TreasureGuarder(object):
             # TODO: We must parse the LFS objects either.
             if os.path.exists(os.path.join(repo, "packed-refs")):
                 os.chdir(repo)
-                shell("git remote update")
+                run("git remote update")
             else:
                 # Create a mirror clone of origin repository url if working
                 # repository not exists.
-                shell(
+                run(
                     "git clone --mirror {url} {dirname}".format(
-                        url=options["from"], dirname=repo
+                        url=options["src"], dirname=repo
                     )
                 )
                 os.chdir(repo)
 
             # Check if remote name exits
-            p = shell("git remote", stdout=PIPE)
-            remotes = p.stdout.decode("utf-8").splitlines()
+            p = run("git remote")
+            remotes = p.stdout.splitlines()
             if self.REMOTE_NAME in remotes:
                 # If the url already exists, we override it
-                shell(
+                run(
                     "git config remote.{name}.url {url}".format(
-                        name=self.REMOTE_NAME, url=options["to"]
+                        name=self.REMOTE_NAME, url=options["dst"]
                     )
                 )
             else:
                 # Add the remote url to this repository if it's not exists
-                shell(
+                run(
                     "git remote add {name} {url}".format(
-                        name=self.REMOTE_NAME, url=options["to"]
+                        name=self.REMOTE_NAME, url=options["dst"]
                     )
                 )
 
-            shell(
+            run(
                 "git config remote.{name}.url {url}".format(
-                    name=self.ORIGIN_NAME, url=options["from"]
+                    name=self.ORIGIN_NAME, url=options["src"]
                 )
             )
 
             # Push all to backup repository
-            shell("git push {name} --all".format(name=self.REMOTE_NAME))
-            shell("git push {name} --tags".format(name=self.REMOTE_NAME))
-
+            run("git push {name} --all".format(name=self.REMOTE_NAME))
+            run("git push {name} --tags".format(name=self.REMOTE_NAME))
         finally:
             # Change back to original directory
             os.chdir(orig_dir)
@@ -93,5 +87,7 @@ class TreasureGuarder(object):
         i = 0
         for k, v in items:
             i += 1
-            click.echo("[%s/%s] Mirroring repository : %s ..." % (i, count, k))
+            click.echo(
+                "\n[%s/%s] Mirroring repository : %s ..." % (i, count, k)
+            )
             self.mirror_repo(k, v)
