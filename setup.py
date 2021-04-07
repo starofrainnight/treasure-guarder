@@ -17,6 +17,8 @@ install_requires = [
     "attrdict",
     "shotatlogging",
     "invoke",
+    "PyGithub",
+    "giteapy",
 ]
 
 setup_requires = [

@@ -2,13 +2,20 @@
 
 """Main module."""
 
+import re
 import os
 import yaml
 import logging
 import click
+import invoke
 from attrdict import AttrDict
-from typing import Dict, Any
-from invoke import run
+from typing import Dict, Any, Tuple
+from . import repoapi
+
+
+def run(command, **kwargs):
+    logging.info("[CMD] %s" % (command,))
+    return invoke.run(command, **kwargs)
 
 
 class TreasureGuarder(object):
@@ -25,7 +32,89 @@ class TreasureGuarder(object):
         else:
             self._cfg = dict()
 
+    def get_domain_from_url(self, url):
+        # type: (str) -> str
+        from urllib.parse import urlsplit
+
+        if "://" in url:
+            urlpath = urlsplit(url).netloc
+        else:
+            urlpath = url.split("/")[0]
+
+        domain = urlpath.split(":")[0]
+        domain = domain.split("@")
+        if len(domain) >= 2:
+            domain = domain[1]
+        else:
+            domain = domain[0]
+
+        return domain
+
+    def get_owner_repo_from_url(self, url):
+        # type: (str) -> Tuple[str, str]
+        from urllib.parse import urlsplit
+
+        url = os.path.splitext(url)[0]
+        repo = os.path.basename(url)
+        url = os.path.dirname(url)
+        owner = os.path.basename(url).split(":")[-1]
+
+        return (owner, repo)
+
+    def _mirror_info(self, src_url, dst_url):
+        access_ctxs = self._cfg.get("access-contexts", dict())
+        src_domain = self.get_domain_from_url(src_url)
+        dst_domain = self.get_domain_from_url(dst_url)
+        # if src_domain in access_ctxs:
+
+        # Create repository to destination if we have supports
+        if dst_domain not in access_ctxs:
+            return
+
+        logging.info("src_url: %s" % src_url)
+        logging.info("dst_url: %s" % dst_url)
+
+        dst_owner, dst_repo = self.get_owner_repo_from_url(dst_url)
+        dst_api = repoapi.get(access_ctxs[dst_domain])
+
+        try:
+            dst_api.get_repo(dst_owner, dst_repo)
+            self._logger.info("Repo '%s/%s' exists" % (dst_owner, dst_repo))
+        except repoapi.RepoApiError:
+            # No specific repo found
+            self._logger.info("Create repo '%s/%s'" % (dst_owner, dst_repo))
+            dst_api.create_repo(dst_owner, dst_repo)
+
+        if src_domain not in access_ctxs:
+            self._logger.info("No source description")
+            return
+
+        src_api = repoapi.get(access_ctxs[src_domain])
+
+        src_owner, src_repo = self.get_owner_repo_from_url(src_url)
+        src_repo_info = src_api.get_repo(src_owner, src_repo)
+        src_desc = src_repo_info["description"]
+        src_desc = "" if src_desc is None else src_desc.strip()
+
+        dst_repo_info = dst_api.get_repo(dst_owner, dst_repo)
+        dst_desc = dst_repo_info["description"]
+        dst_desc = "" if dst_desc is None else dst_desc.strip()
+
+        if src_desc == dst_desc:
+            self._logger.info("Description is same")
+            return
+
+        if len(src_desc.strip()) <= 0:
+            self._logger.info("Source description is empty!")
+            return
+
+        print("set '%s/%s' to '%s'" % (dst_owner, dst_repo, src_desc))
+
+        dst_api.edit_repo(dst_owner, dst_repo, src_desc)
+
     def mirror_repo(self, repo: str, options: Dict[str, Any]):
+        self._mirror_info(options["src"], options["dst"])
+
         local_repo_dir = os.path.join(self.WORK_DIR, repo)
         os.makedirs(local_repo_dir, exist_ok=True)
 
@@ -98,13 +187,25 @@ class TreasureGuarder(object):
     def exec_(self):
         os.makedirs(self.WORK_DIR, exist_ok=True)
 
+        pat = r"(?:(?:ssh|http|https)\:\/\/)?(?:[\w\.\-]+@)?[\w\.\-]+\:(?:\d+\/(.*)|([^/]+\/.*))"
+
         items = self._cfg.get("repos", list())
         count = len(items)
         i = 0
         for item in items:
             i += 1
-            name = os.path.splitext(os.path.basename(item["src"]))[0]
+
+            matched = re.match(pat, item["src"])
+
+            if matched.group(1) is None:
+                name = matched.group(2)
+            else:
+                name = matched.group(1)
+            name = name.replace("/", "-")
+            name = os.path.splitext(name)[0]
+
             self._logger.info(
                 "[%s/%s] Mirroring repository : %s" % (i, count, name)
             )
+
             self.mirror_repo(name, item)
