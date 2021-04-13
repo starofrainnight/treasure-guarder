@@ -23,6 +23,14 @@ class GiteaApi(RepoApi):
 
         org_api = giteapy.OrganizationApi(self._client)
 
+        try:
+            org_opts = giteapy.CreateOrgOption(username=owner)
+            org_opts.visibility = "private"
+            org_opts.repo_admin_change_team_access = True
+            org_api.org_create(organization=org_opts)
+        except giteapy.rest.ApiException:
+            pass
+
         body = {
             "auto_init": False,
             "default_branch": "master",
