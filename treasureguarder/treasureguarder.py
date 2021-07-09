@@ -123,11 +123,12 @@ class TreasureGuarder(object):
         os.chdir(self.WORK_DIR)
         try:
             # TODO: We must parse the LFS objects either.
+            is_new_created = False
             if os.path.exists(os.path.join(repo, "packed-refs")):
-                self._logger.info("Cached respository, updating")
                 os.chdir(repo)
-                run("git remote update")
             else:
+                is_new_created = True
+
                 # Create a mirror clone of origin repository url if working
                 # repository not exists.
                 self._logger.info("New respository, cloning")
@@ -162,6 +163,10 @@ class TreasureGuarder(object):
                         name=self.REMOTE_NAME, url=options["dst"]
                     )
                 )
+
+            if not is_new_created:
+                self._logger.info("Cached respository, updating")
+                run("git remote update")
 
             self._logger.info("Fixs remote '%s'" % self.ORIGIN_NAME)
 
