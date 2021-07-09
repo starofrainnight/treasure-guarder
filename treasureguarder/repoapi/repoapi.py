@@ -22,6 +22,12 @@ class RepoApi(object):
     def get_repo(self, owner: str, repo_name: str) -> Dict:
         raise NotImplementedError()
 
+    def get_group(self, group: str) -> Dict:
+        raise NotImplementedError()
+
+    def edit_group(self, group: str, desc: str):
+        raise NotImplementedError()
+
 
 _apis = dict()
 

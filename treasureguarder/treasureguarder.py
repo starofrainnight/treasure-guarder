@@ -90,8 +90,28 @@ class TreasureGuarder(object):
             return
 
         src_api = repoapi.get(access_ctxs[src_domain])
-
         src_owner, src_repo = self.get_owner_repo_from_url(src_url)
+
+        # Synchrone group informations
+        if "_._" in dst_owner:
+            src_group_info = src_api.get_group(src_owner)
+            src_group_desc = src_group_info["description"]
+            src_group_desc = (
+                "" if src_group_desc is None else src_group_desc.strip()
+            )
+
+            dst_group_info = dst_api.get_group(dst_owner)
+            dst_group_desc = dst_group_info["description"]
+            dst_group_desc = (
+                "" if dst_group_desc is None else dst_group_desc.strip()
+            )
+
+            if src_group_desc == dst_group_desc:
+                self._logger.info("Group description is same")
+            elif len(src_group_desc) > 0:
+                dst_api.edit_group(dst_owner, dst_repo, src_group_desc)
+
+        # Synchrone repo informations
         src_repo_info = src_api.get_repo(src_owner, src_repo)
         src_desc = src_repo_info["description"]
         src_desc = "" if src_desc is None else src_desc.strip()
@@ -215,7 +235,7 @@ class TreasureGuarder(object):
             )
 
             try:
-            self.mirror_repo(name, item)
+                self.mirror_repo(name, item)
             except invoke.exceptions.UnexpectedExit as e:
                 self._logger.warn(str(e))
                 failed_repos.append(name)

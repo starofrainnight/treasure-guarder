@@ -65,3 +65,20 @@ class GiteaApi(RepoApi):
             return repo
         except giteapy.rest.ApiException as e:
             raise RepoApiError(str(e))
+
+    def get_group(self, group: str) -> Dict:
+        api = giteapy.OrganizationApi(self._client)
+
+        try:
+            info = {"description": api.org_get(group).description}
+            return info
+        except giteapy.rest.ApiException as e:
+            raise RepoApiError(str(e))
+
+    def edit_group(self, group: str, desc: str):
+        api = giteapy.OrganizationApi(self._client)
+
+        body = {
+            "description": desc,
+        }
+        api.org_edit(group, body)
