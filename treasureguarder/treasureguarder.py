@@ -189,6 +189,7 @@ class TreasureGuarder(object):
 
         pat = r"(?:(?:ssh|http|https)\:\/\/)?(?:[\w\.\-]+@)?[\w\.\-]+\:(?:\d+\/(.*)|([^/]+\/.*))"
 
+        failed_repos = []
         items = self._cfg.get("repos", list())
         count = len(items)
         i = 0
@@ -208,4 +209,11 @@ class TreasureGuarder(object):
                 "[%s/%s] Mirroring repository : %s" % (i, count, name)
             )
 
+            try:
             self.mirror_repo(name, item)
+            except invoke.exceptions.UnexpectedExit as e:
+                self._logger.warn(str(e))
+                failed_repos.append(name)
+
+        if len(failed_repos) > 0:
+            self._logger.warn("Failed repositories: %s" % failed_repos)
