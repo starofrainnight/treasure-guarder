@@ -109,7 +109,12 @@ class TreasureGuarder(object):
             if src_group_desc == dst_group_desc:
                 self._logger.info("Group description is same")
             elif len(src_group_desc) > 0:
-                dst_api.edit_group(dst_owner, dst_repo, src_group_desc)
+                self._logger.info(
+                    "Set desc of group '%s' to '%s' "
+                    % (dst_owner, src_group_desc)
+                )
+
+                dst_api.edit_group(dst_owner, src_group_desc)
 
         # Synchrone repo informations
         src_repo_info = src_api.get_repo(src_owner, src_repo)
