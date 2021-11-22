@@ -73,6 +73,16 @@ class GiteaApi(RepoApi):
             info = {"description": api.org_get(group).description}
             return info
         except giteapy.rest.ApiException as e:
+            if e.status == 404:
+                api = giteapy.UserApi(self._client)
+                user_info = api.user_get(group)
+                if hasattr(user_info, "description"):
+                    info = {"description": api.user_get(group).description}
+                else:
+                    info = {"description": ""}
+
+                return info
+
             raise RepoApiError(str(e))
 
     def edit_group(self, group: str, desc: str):
