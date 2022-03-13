@@ -5,6 +5,8 @@ import giteapy
 import giteapy.rest
 from . import repoapi
 from .repoapi import RepoApi, RepoApiError
+from operator import attrgetter
+from cachetools import cachedmethod
 
 
 class GiteaApi(RepoApi):
@@ -18,6 +20,7 @@ class GiteaApi(RepoApi):
 
         self._cfg = cfg
         self._client = giteapy.ApiClient(cfg)
+        self._cache = dict()
 
     def create_repo(self, owner: str, repo_name: str):
 
@@ -55,6 +58,7 @@ class GiteaApi(RepoApi):
         }
         repo_api.repo_edit(owner, repo_name, body=body)
 
+    @cachedmethod(attrgetter("_cache"))
     def get_repo(self, owner: str, repo_name: str) -> Dict:
         repo_api = giteapy.RepositoryApi(self._client)
 
@@ -66,6 +70,7 @@ class GiteaApi(RepoApi):
         except giteapy.rest.ApiException as e:
             raise RepoApiError(str(e))
 
+    @cachedmethod(attrgetter("_cache"))
     def get_group(self, group: str) -> Dict:
         api = giteapy.OrganizationApi(self._client)
 
