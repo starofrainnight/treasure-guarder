@@ -19,6 +19,7 @@ install_requires = [
     "invoke",
     "PyGithub",
     "giteapy",
+    "cachetools",
 ]
 
 setup_requires = [
