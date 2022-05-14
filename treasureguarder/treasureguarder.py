@@ -217,7 +217,7 @@ class TreasureGuarder(object):
     def exec_(self):
         os.makedirs(self.WORK_DIR, exist_ok=True)
 
-        pat = r"(?:(?:ssh|http|https)\:\/\/)?(?:[\w\.\-]+@)?[\w\.\-]+\:(?:\d+\/(.*)|([^/]+\/.*))"
+        pat = r"(?:(?:ssh|http|https)\:\/\/)?(?:[\w\.\-]+@)?[\w\.\-]+(?:\:\d+\/(.*)|[^/]+\/(.*))"
 
         failed_repos = []
         items = self._cfg.get("repos", list())
